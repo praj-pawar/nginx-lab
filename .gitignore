@@ -1,0 +1,19 @@
+node_modules/
+*.log
+certs/
+
+# Working notebook and planning docs. These contain rough notes and
+# references to internal systems, and are not meant to ship with the repo.
+NOTES.md
+docs/
+
+# Per-lab runtime state created by nginx at startup.
+labs/*/logs/
+labs/*/tmp/
+labs/*/cache/
+labs/*/reject-demo.conf
+
+.DS_Store
+BLOG-part1.md
+BLOG-part2.md
+diagrams/*-dark.svg
