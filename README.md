@@ -1,7 +1,7 @@
 # nginx-lab
 
-Companion labs for my post on load balancers, reverse proxies and API gateways:
-one machine wearing three job titles. Every claim in the post was observed by
+Companion labs for my post [load balancer, reverse proxy, API gateway: one
+machine wearing three job titles](https://www.prajpawar.com/notes/one-machine-three-job-titles). Every claim in the post was observed by
 running these configs, and you can reproduce all of it on a laptop with nginx
 and Node installed. No sudo needed anywhere.
 
