@@ -139,7 +139,11 @@ location / {
 
 No new module and no different mode. `proxy_pass` now names a pool instead of an address. I ran three copies of the same backend on ports 3001 to 3003, each replying with its own number, and sent nine requests in a row. They came back `1 2 3 1 2 3 1 2 3`.
 
-Round robin is the default and needs no directive, which is why nothing in that config says so. Those nine requests came from nine separate processes over nine separate TCP connections and they still cycled in order. So the counter (in nginx memory) belongs to the pool rather than to any individual client, which leads to the sentence worth remembering: **round robin distributes requests, not users.** One user making three requests reaches three different backends. That is exactly right for a stateless API and fatal for anything keeping session state in one process's memory.
+Round robin is the default and needs no directive, which is why nothing in that config says so. Those nine requests came from nine separate processes over nine separate TCP connections and they still cycled in order. So the counter (in nginx memory) belongs to the pool rather than to any individual client, which leads to the sentence worth remembering.
+
+> Round robin distributes requests, not users.
+
+One user making three requests reaches three different backends. That is exactly right for a stateless API and fatal for anything keeping session state in one process's memory.
 
 Selection also happens per request rather than per connection. With keepalive enabled, one client connection carrying ten requests can have those ten spread across every backend in the pool.
 
@@ -238,7 +242,9 @@ location /v1/calls/  { proxy_pass http://127.0.0.1:3002/; }
 
 Requesting `/v1/agents/list` reached the backend as `/list` because both the `location` and the `proxy_pass` end in a slash and the prefix gets stripped. Drop that slash and the backend receives the full path instead. Which one your application expects is a real decision and getting it wrong gives you 404s that look like application bugs rather than routing bugs.
 
-Worth being clear about what these blocks are. They are not your API routes. The gateway matches coarse prefixes and your application resolves the specific endpoint, so a new endpoint ships without touching gateway config. **A gateway knows about services, not endpoints.**
+Worth being clear about what these blocks are. They are not your API routes. The gateway matches coarse prefixes and your application resolves the specific endpoint, so a new endpoint ships without touching gateway config.
+
+> A gateway knows about services, not endpoints.
 
 **Rate limiting.** Twelve rapid requests gave me `200 200 200 200 200 200` then six `429`s.
 
@@ -330,7 +336,9 @@ Two patterns worth stealing, both of which follow directly from the sections abo
 
 **One shared L7 balancer fronts many services, with explicit rule priority.** Rather than a balancer per service, one holds rules for every path prefix on the same hostname and each rule carries a priority number so evaluation order is deliberate. WebSocket paths usually sit highest because a generic prefix rule above them will swallow the upgrade requests.
 
-**Streaming paths sometimes bypass the L7 balancer entirely.** This is the counterintuitive one. An L7 balancer parses and buffers HTTP, which is correct for request and response APIs and harmful for live audio, where buffering shows up as degraded quality. So that traffic gets routed through an L4 balancer instead. You choose L4 when the intelligence is the problem.
+**Streaming paths sometimes bypass the L7 balancer entirely.** This is the counterintuitive one. An L7 balancer parses and buffers HTTP, which is correct for request and response APIs and harmful for live audio, where buffering shows up as degraded quality. So that traffic gets routed through an L4 balancer instead.
+
+> You choose L4 when the intelligence is the problem.
 
 ## Which one do you need
 
@@ -358,7 +366,9 @@ The status codes you see tell you **who answered** and that points you in differ
 | 503 | the proxy's own policy | your config, usually a rate or connection limit |
 | 429 | the proxy's own policy | your rate limit, if you set the status explicitly |
 
-A 502 or 504 sends you to the service. A 429 or 503 sends you to the gateway. Being able to say "these are 503s, so that is our own limiter rather than the service being down" saves you from restarting healthy pods at two in the morning.
+> A 502 or 504 sends you to the service. A 429 or 503 sends you to the gateway.
+
+Being able to say "these are 503s, so that is our own limiter rather than the service being down" saves you from restarting healthy pods at two in the morning.
 
 ### Three things worth keeping
 
