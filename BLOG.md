@@ -8,7 +8,7 @@ There is actually one thing and there are three problems people were trying to s
 
 So in this post I want to build all three up from first principles and show you how they are actually used in production. The way I get comfortable with a system is by taking it apart until it stops surprising me, so I spent a few nights doing exactly that with nginx on my laptop, fronting three tiny backends that report exactly what they receive. What follows is what the machine did rather than what the docs say.
 
-And at the end of the post, I have added insights from the production systems I have worked with: how these pieces are actually deployed and a status code cheat sheet that will save you a late night debugging session someday.
+And at the end of the post, I get into how these pieces are actually wired together in the production systems I have worked with: the chains real traffic flows through, the patterns that never make it into the docs and the lessons that are usually learned the hard way, during an outage.
 
 Every config is in [this repo](https://github.com/praj-pawar/nginx-lab). I would recommend running the labs yourself and getting your hands dirty because that is the part that makes any of this stick.
 
