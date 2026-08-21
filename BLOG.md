@@ -235,7 +235,7 @@ If a load balancer is a reverse proxy that chooses, an API gateway is a reverse 
 
 Everything below sits on top of the same `proxy_pass`. Nothing new is installed.
 
-**Routing to different services by path.** One hostname, several services.
+The first policy is **routing by path**, which puts one hostname in front of several services.
 
 ```nginx
 location /v1/agents/ { proxy_pass http://127.0.0.1:3001/; }
@@ -244,11 +244,11 @@ location /v1/calls/  { proxy_pass http://127.0.0.1:3002/; }
 
 Requesting `/v1/agents/list` reaches the backend as `/list` because both the `location` and the `proxy_pass` end in a slash and the prefix gets stripped. Drop that slash and the backend receives the full path instead. Which one your application expects is a real decision and getting it wrong gives you 404s that look like application bugs rather than routing bugs.
 
-Worth being clear about what these blocks are. They are not your API routes. The gateway matches coarse prefixes and your application resolves the specific endpoint so a new endpoint ships without touching gateway config.
+One thing worth being clear about: these location blocks are not your API routes. The gateway only matches coarse prefixes while your application resolves the exact route so a new endpoint ships without touching gateway config.
 
 > A gateway knows about services, not endpoints.
 
-**Rate limiting.** Twelve rapid requests give me `200 200 200 200 200 200` then six `429`s.
+Next comes **rate limiting**. I send twelve rapid requests and get six `200`s followed by six `429`s.
 
 ```nginx
 limit_req_zone $binary_remote_addr zone=perip:10m rate=2r/s;
@@ -265,7 +265,7 @@ Set `limit_req_status` explicitly because nginx defaults to **503** which tells 
 
 One caveat that follows from earlier. Keying on `$binary_remote_addr` is correct only when the proxy is the edge. Behind a CDN every request carries the same address and you are back to a global limit wearing a per client costume. nginx has a module for that, `set_real_ip_from` plus `real_ip_header` which rewrites `$remote_addr` from a header but only for senders you list as trusted.
 
-**Authentication.** nginx fires an internal subrequest before proxying anything.
+For **authentication**, nginx fires an internal subrequest before proxying anything.
 
 ```nginx
 location /private/ {
@@ -278,7 +278,7 @@ location /private/ {
 
 I send a request without the key and get a 401 and the backend logs nothing because it is never contacted. The service holding the data does not participate in requests that fail authorisation.
 
-**Caching.** Three lines cache successful responses for thirty seconds with a response header exposing what the cache did:
+And finally **caching**, where three lines keep successful responses for thirty seconds with a response header exposing what the cache did:
 
 ```nginx
 location /cached/ {
