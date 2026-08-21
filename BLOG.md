@@ -33,9 +33,9 @@ An **API gateway** IS a reverse proxy whose defining job is enforcing policy; th
 
 This is why nginx can be all three. There is no load balancer mode to switch on. You write configuration that determines which of the three words the proxy falls under.
 
-## Building a reverse proxy, and watching it destroy information
+## Building a reverse proxy and watching it destroy information
 
-Here is the smallest reverse proxy that works. One backend, one line that matters.
+Here is the smallest reverse proxy that works.
 
 ```nginx
 server {
