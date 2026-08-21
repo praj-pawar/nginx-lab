@@ -221,11 +221,11 @@ And that is the vocabulary problem: when somebody says "load balancer", they mig
 
 So why choose the less capable option? Three reasons come up in practice.
 
-**Non HTTP protocols**, because a database or a mail server has no headers to route on.
+The first is **non HTTP protocols** because a database or a mail server has no headers to route on.
 
-**TLS you would rather not decrypt**, because reading HTTP means holding the private key and an L4 balancer can forward encrypted traffic it cannot read. The layer choice is often decided by where you are willing to put your keys.
+The second is **TLS you would rather not decrypt** because reading HTTP means holding the private key while an L4 balancer can forward encrypted traffic it cannot read. The layer choice is often decided by where you are willing to put your keys.
 
-**Real time streams**, where an L7 proxy's parsing and buffering degrades live audio, and being understood is a liability rather than a feature.
+The third is **real time streams**, where an L7 proxy's parsing and buffering degrades live audio so being understood is a liability rather than a feature.
 
 The client IP problem follows an L4 balancer too and the header trick is unavailable since there are no headers. The fix lives one layer down, in the PROXY protocol which sends a short preamble ahead of the application data carrying the original addresses. Both ends must agree, with no negotiation, so enabling it is a coordinated change.
 
@@ -259,7 +259,9 @@ location /v1/auth/ {
 }
 ```
 
-The model is a leaky bucket draining at the configured rate and `burst` is how many requests may wait in it. An instantaneous flood gets `burst + 1` through because the rate itself permits one. The `nodelay` flag is the part people copy without reading. Without it, burst requests are **delayed** and released at the drain rate. With it, the burst is served **immediately** and anything beyond it is rejected. Whether your clients would rather wait or fail fast decides which you want.
+Picture a bucket that drains at the configured rate, which here is two requests per second. `burst=5` is the size of the bucket, meaning five requests may wait inside it. When my twelve requests arrive together, the first one goes straight through because the rate permits it, the next five fill the bucket and the remaining six get a 429. That is where the six successes come from.
+
+The `nodelay` flag is the part people copy without reading, and it decides what happens to the five requests sitting in the bucket. Without it nginx releases them slowly at the drain rate, so they succeed spread over a couple of seconds. With it nginx answers them immediately. The same six succeed either way, so the flag is really choosing between fast responses for your clients and a smooth, steady stream of requests for your backend.
 
 Set `limit_req_status` explicitly because nginx defaults to **503** which tells the client your service is broken when the truth is that they sent too much.
 
