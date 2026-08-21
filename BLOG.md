@@ -334,9 +334,9 @@ Every hop makes its own decisions about headers, health checks, timeouts and ret
 
 The health check row is the biggest practical upgrade. Open source nginx finds a dead backend by failing somebody's request, while managed balancers probe independently and know before a user does. If you have only ever used a managed balancer, that behaviour is a feature you are being given rather than something inherent to load balancing.
 
-Two patterns worth stealing, both of which follow directly from the sections above.
+Two patterns worth stealing both of which follow directly from the sections above.
 
-**One shared L7 balancer fronts many services, with explicit rule priority.** Rather than a balancer per service, one holds rules for every path prefix on the same hostname and each rule carries a priority number so evaluation order is deliberate. WebSocket paths usually sit highest because a generic prefix rule above them will swallow the upgrade requests.
+**One shared L7 balancer fronts many services with explicit rule priority.** Rather than a balancer per service, one holds rules for every path prefix on the same hostname and each rule carries a priority number so evaluation order is deliberate. WebSocket paths usually sit highest because a generic prefix rule above them will swallow the upgrade requests.
 
 **Streaming paths sometimes bypass the L7 balancer entirely.** This is the counterintuitive one. An L7 balancer parses and buffers HTTP which is correct for request and response APIs and harmful for live audio, where buffering shows up as degraded quality. So that traffic gets routed through an L4 balancer instead.
 
