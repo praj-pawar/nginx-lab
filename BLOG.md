@@ -119,7 +119,7 @@ app.set("trust proxy", 2);   // the number of proxies in front, not `true`
 
 `true` tells Express to trust the whole chain, which lets a client forge `X-Forwarded-For` and defeat rate limiting on purpose. A hop count only trusts the proxies you actually operate.
 
-The same setting governs two other things, which is worth knowing because the symptoms look unrelated. An application that checks its own connection to decide whether the request was secure always sees plaintext because TLS ended at the proxy. So it emits `http://` links on a page served over HTTPS and it refuses to set the `Secure` flag on cookies. Three bugs, one misconfiguration.
+The same setting governs two other things which is worth knowing because the symptoms look unrelated. An application that checks its own connection to decide whether the request was secure always sees plaintext because TLS ended at the proxy. So it emits `http://` links on a page served over HTTPS and it refuses to set the `Secure` flag on cookies. Three bugs caused due to one misconfig.
 
 This is the practical reason to understand the two connection model rather than treating the proxy as a black box. The bug is invisible in application code, invisible in tests and invisible in local development where there is no proxy at all.
 
