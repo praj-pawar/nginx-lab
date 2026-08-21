@@ -340,7 +340,7 @@ Two patterns worth stealing both of which follow directly from the sections abov
 
 **Streaming paths sometimes bypass the L7 balancer entirely.** This is the counterintuitive one. An L7 balancer parses and buffers HTTP which is correct for request and response APIs and harmful for live audio where buffering shows up as degraded quality. So that traffic gets routed through an L4 balancer instead.
 
-> L4 works at the transport layer so it only sees connections and moves bytes without understanding them. L7 works at the application layer so it reads the full HTTP request and can route on paths, rewrite headers and cache responses. Pick L7 when you need that intelligence and L4 when the intelligence gets in the way.
+> Pick L7 when you need the intelligence and L4 when the intelligence gets in the way.
 
 ## Which one do you need
 
