@@ -195,7 +195,7 @@ IP packet          ← addresses
     HTTP request   ← method, path, headers
 ```
 
-A proxy chooses how far into that stack to look and the choice has a name. **L4 reads the TCP layer and forwards the payload unopened. L7 opens the payload and reads the HTTP inside.**
+> A proxy chooses how far into that stack to look and the choice has a name. L4 reads the TCP layer and forwards the payload unopened. L7 opens the payload and reads the HTTP inside.
 
 Both layers are present in every single request so "L4 traffic" and "L7 traffic" are not real categories. Only the depth of inspection is.
 
