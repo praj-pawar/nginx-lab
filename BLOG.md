@@ -16,9 +16,9 @@ Every config is in [this repo](https://github.com/praj-pawar/nginx-lab). I would
 
 A **reverse proxy** is the underlying capability. It accepts a client's connection, reads the request and then opens its own separate connection to a backend to fetch the response.
 
-A **load balancer** IS a reverse proxy whose defining job is choosing which of several backends should handle each request.
+A **load balancer** **is** a reverse proxy whose defining job is choosing which of several backends should handle each request.
 
-An **API gateway** IS a reverse proxy whose defining job is enforcing policy; things like authentication, rate limits, quotas and request shaping.
+An **API gateway** **is** a reverse proxy whose defining job is enforcing policy; things like authentication, rate limits, quotas and request shaping.
 
 > Reverse proxying is the capability. The other two are descriptions of what you are mostly using that capability for.
 
