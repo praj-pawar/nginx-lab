@@ -235,7 +235,7 @@ If a load balancer is a reverse proxy that chooses, an API gateway is a reverse 
 
 Everything below sits on top of the same `proxy_pass`. Nothing new is installed.
 
-The first policy is **routing by path**, which puts one hostname in front of several services.
+The first policy is **routing by path** which puts one hostname in front of several services.
 
 ```nginx
 location /v1/agents/ { proxy_pass http://127.0.0.1:3001/; }
@@ -290,7 +290,7 @@ location /cached/ {
 
 Two identical requests return `X-Cache-Status: MISS` then `HIT` and the backend log shows one request rather than two. The second response is produced entirely by the gateway.
 
-That is a meaningful shift. A reverse proxy relays. A gateway that caches **answers** which means your backend's traffic and your gateway's traffic are no longer the same number.
+That is a meaningful shift. A plain reverse proxy passes every request along. A gateway with a cache **answers some requests on its own** so your backend's traffic and your gateway's traffic are no longer the same number.
 
 ### The order all this runs in
 
