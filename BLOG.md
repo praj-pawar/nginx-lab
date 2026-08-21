@@ -89,7 +89,7 @@ location / {
 
 With those four lines the backend finally learns the hostname the client asked for, the client's address and whether the original request used TLS.
 
-There is a detail here that took me a moment to accept. Adding those headers does **not** restore the client's IP address. The backend's socket still reports the proxy because the proxy genuinely is the thing connected to it. The headers are annotations written onto the request by a machine you happen to trust.
+I need you to understand this part. Adding those headers does **not** restore the client's IP address. The backend's socket still reports the proxy because the proxy genuinely is the thing connected to it. The headers are annotations written onto the request by a machine you happen to trust.
 
 That matters because an IP address is a property of a TCP connection rather than part of an HTTP request. HTTP has no field for the sender's address, which is why a convention had to be invented. Think of the HTTP request as a letter and the IP header as the envelope. A reverse proxy opens the envelope, takes out the letter, puts it in a new envelope with its own return address and sends it on. The letter arrives unchanged and the recipient sees the proxy's return address because the envelope was never forwarded in the first place. `X-Forwarded-For` is the proxy copying the original return address onto the letter since the letter is the only part that travels the whole distance.
 
