@@ -72,7 +72,7 @@ Three things in that table are worth sitting with.
 
 **The `Host` header was overwritten.** The client asked for `localhost:8080`. The backend was told `127.0.0.1:3001`. nginx rewrites `Host` to describe the upstream it is dialing, so the hostname the user typed is gone by the time your application sees the request. Anything that builds a URL from `Host` now builds the wrong one.
 
-**nginx added no forwarding headers at all.** This surprised me more than it should have. A reverse proxy is the thing that hides the client, so you might expect it to compensate automatically. It does not. `X-Forwarded-For`, `X-Real-IP` and `X-Forwarded-Proto` are all opt-in.
+**nginx added no forwarding headers at all.** A reverse proxy is the thing that hides the client, so you might expect it to compensate automatically. It does not. `X-Forwarded-For`, `X-Real-IP` and `X-Forwarded-Proto` are all opt-in.
 
 The fix is the familiar block from every production nginx config, best understood as a repair kit for information the proxy destroys by design:
 
