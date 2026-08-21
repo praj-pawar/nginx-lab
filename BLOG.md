@@ -338,7 +338,7 @@ Two patterns worth stealing both of which follow directly from the sections abov
 
 **One shared L7 balancer fronts many services with explicit rule priority.** Rather than a balancer per service, one holds rules for every path prefix on the same hostname and each rule carries a priority number so evaluation order is deliberate. WebSocket paths usually sit highest because a generic prefix rule above them will swallow the upgrade requests.
 
-**Streaming paths sometimes bypass the L7 balancer entirely.** This is the counterintuitive one. An L7 balancer parses and buffers HTTP which is correct for request and response APIs and harmful for live audio, where buffering shows up as degraded quality. So that traffic gets routed through an L4 balancer instead.
+**Streaming paths sometimes bypass the L7 balancer entirely.** This is the counterintuitive one. An L7 balancer parses and buffers HTTP which is correct for request and response APIs and harmful for live audio where buffering shows up as degraded quality. So that traffic gets routed through an L4 balancer instead.
 
 > You choose L4 when the intelligence is the problem.
 
