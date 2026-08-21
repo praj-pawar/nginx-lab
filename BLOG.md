@@ -6,7 +6,7 @@ Most of the writing on the internet is generic - a load balancer distributes tra
 
 There is actually one thing and there are three problems people were trying to solve when they named it.
 
-So in this post I want to build all three up from first principles and show you how they are actually used in production. The way I get comfortable with a system is by taking it apart until it stops surprising me, so I spent a few nights doing exactly that with nginx on my laptop, fronting three tiny backends that report exactly what they receive. What follows is what the machine did rather than what the docs say.
+So in this post I want to build all three up from first principles and show you how they are actually used in production. The way I get comfortable with a system is by taking it apart until it stops surprising me, so I spent a few nights doing exactly that with nginx on my laptop, fronting three tiny backends that report exactly what they receive. What follows is what the machine does rather than what the docs say.
 
 And at the end of the post, I get into how these pieces are actually wired together in the production systems I have worked with: the chains real traffic flows through, the patterns that never make it into the docs and the lessons that are usually learned the hard way, during an outage.
 
@@ -50,14 +50,14 @@ server {
 
 The part that matters is that these are **two independent TCP connections**. The proxy does not forward your packets. It terminates your connection, reads the request out of it and writes a fresh request into a socket of its own.
 
-To see what survives that gap, I put a tiny backend on port 3001 that does nothing but report the request it received, and pointed the config above at it from port 8080. Then I asked the same question twice, once bypassing nginx and once going through it.
+To see what survives that gap, I put a tiny backend on port 3001 that does nothing but report the request it receives, and point the config above at it from port 8080. Then I ask the same question twice, once bypassing nginx and once going through it.
 
 ```bash
 curl localhost:3001/hello    # straight to the backend
 curl localhost:8080/hello    # through nginx
 ```
 
-Same path, same machine, two different answers about who was asking.
+Same path, same machine, two different answers about who is asking.
 
 | What the backend sees | Direct | Through nginx |
 |---|---|---|
@@ -68,11 +68,11 @@ Same path, same machine, two different answers about who was asking.
 
 Three things in that table are worth sitting with.
 
-**The client IP changed, and so did its address family.** The direct request arrived over IPv6 because that is what my resolver preferred. The proxied one arrived over IPv4 because the config named `127.0.0.1` explicitly. Two different protocol families is a clear demonstration that these are two different connections.
+**The client IP changes, and so does its address family.** The direct request arrives over IPv6 because that is what my resolver prefers. The proxied one arrives over IPv4 because the config names `127.0.0.1` explicitly. Two different protocol families is a clear demonstration that these are two different connections.
 
-**The `Host` header was overwritten.** The client asked for `localhost:8080`. The backend was told `127.0.0.1:3001`. nginx rewrites `Host` to describe the upstream it is dialing, so the hostname the user typed is gone by the time your application sees the request. Anything that builds a URL from `Host` now builds the wrong one.
+**The `Host` header is overwritten.** The client asks for `localhost:8080`. The backend is told `127.0.0.1:3001`. nginx rewrites `Host` to describe the upstream it is dialing, so the hostname the user typed is gone by the time your application sees the request. Anything that builds a URL from `Host` now builds the wrong one.
 
-**nginx added no forwarding headers at all.** A reverse proxy is the thing that hides the client, so you might expect it to compensate automatically. It does not. `X-Forwarded-For`, `X-Real-IP` and `X-Forwarded-Proto` are all opt-in.
+**nginx adds no forwarding headers at all.** A reverse proxy is the thing that hides the client, so you might expect it to compensate automatically. It does not. `X-Forwarded-For`, `X-Real-IP` and `X-Forwarded-Proto` are all opt-in.
 
 The fix is the familiar block from every production nginx config, best understood as a repair kit for information the proxy destroys by design:
 
@@ -125,7 +125,7 @@ This is the practical reason to understand the two connection model rather than 
 
 ## Making it a load balancer
 
-Turning that reverse proxy into a load balancer took one block of config.
+Turning that reverse proxy into a load balancer takes one block of config.
 
 ```nginx
 upstream backend_pool {
@@ -139,9 +139,9 @@ location / {
 }
 ```
 
-No new module and no different mode. `proxy_pass` now names a pool instead of an address. I ran three copies of the same backend on ports 3001 to 3003, each replying with its own number, and sent nine requests in a row. They came back `1 2 3 1 2 3 1 2 3`.
+No new module and no different mode. `proxy_pass` now names a pool instead of an address. I run three copies of the same backend on ports 3001 to 3003, each replying with its own number, and send nine requests in a row. They come back `1 2 3 1 2 3 1 2 3`.
 
-Round robin is the default and needs no directive, which is why nothing in that config says so. Those nine requests came from nine separate processes over nine separate TCP connections and they still cycled in order. So the counter (in nginx memory) belongs to the pool rather than to any individual client, which leads to the sentence worth remembering.
+Round robin is the default and needs no directive, which is why nothing in that config says so. Those nine requests come from nine separate processes over nine separate TCP connections and they still cycle in order. So the counter (in nginx memory) belongs to the pool rather than to any individual client, which leads to the sentence worth remembering.
 
 > Round robin distributes requests, not users.
 
@@ -169,15 +169,15 @@ That difference only shows up when the pool changes size, which is precisely whe
 
 ### What happens when a backend dies
 
-I killed one of the three backends and sent nine more requests. Backend two disappeared from the results and traffic split between the other two. The interesting part was in nginx's access log, which I had configured to record which upstream served each request:
+I kill one of the three backends and send nine more requests. Backend two disappears from the results and traffic splits between the other two. The interesting part is in nginx's access log, which I configured to record which upstream served each request:
 
 ```
 upstream=127.0.0.1:3002, 127.0.0.1:3003   upstream_status=502, 200
 ```
 
-One client request, two upstreams tried, a 502 followed by a 200 and the client received a successful response without ever learning that anything had gone wrong.
+One client request, two upstreams tried, a 502 followed by a 200 and the client receives a successful response without ever learning that anything went wrong.
 
-Read that line closely because it tells you how nginx found out. **Open source nginx discovered the dead backend by failing a real user's request.** There is no background prober. `max_fails` defaults to 1 and `fail_timeout` to ten seconds, so a single failure sidelines a server for ten seconds, after which nginx tries it again with somebody's real traffic.
+Read that line closely because it tells you how nginx finds out. **Open source nginx discovers the dead backend by failing a real user's request.** There is no background prober. `max_fails` defaults to 1 and `fail_timeout` to ten seconds, so a single failure sidelines a server for ten seconds, after which nginx tries it again with somebody's real traffic.
 
 This has a consequence people meet during deploys. Restarting a healthy backend does not bring traffic back immediately because nginx is not watching for recovery. It waits out the timer.
 
@@ -199,11 +199,11 @@ A proxy chooses how far into that stack to look and the choice has a name. **L4 
 
 Both layers are present in every single request, so "L4 traffic" and "L7 traffic" are not real categories. Only the depth of inspection is.
 
-To see what the difference costs, I pointed nginx at the same three backends twice in one config. Port 8080 went through the `http` block and port 9090 went through the `stream` block, which is nginx's L4 mode. Then I requested the same URL on both.
+To see what the difference costs, I point nginx at the same three backends twice in one config. Port 8080 goes through the `http` block and port 9090 goes through the `stream` block, which is nginx's L4 mode. Then I request the same URL on both.
 
-On the L7 port, a `location /only-backend-1` rule sent every request to a specific backend and the backend received an `X-Forwarded-For` header.
+On the L7 port, a `location /only-backend-1` rule sends every request to a specific backend and the backend receives an `X-Forwarded-For` header.
 
-On the L4 port, the identical URL round robined across all three backends and no forwarding header arrived. The path had no influence on routing at all.
+On the L4 port, the identical URL round robins across all three backends and no forwarding header arrives. The path has no influence on routing at all.
 
 The detail that makes this click is what **did** arrive. Here is the backend's own log for one of those L4 requests:
 
@@ -211,9 +211,9 @@ The detail that makes this click is what **did** arrive. Here is the backend's o
 GET /only-backend-1   host=localhost:9090   xff=(none)
 ```
 
-The path is intact. The `Host` header is exactly what the client sent, the very header we watched the bare `proxy_pass` config rewrite earlier. The less capable proxy preserved the client's original request more faithfully, and only because it copied the bytes without interpreting them.
+The path is intact. The `Host` header is exactly what the client sent, the very header we watched the bare `proxy_pass` config rewrite earlier. The less capable proxy preserves the client's original request more faithfully, and only because it copies the bytes without interpreting them.
 
-So an L4 balancer is oblivious rather than destructive. The request was fully present the whole time. Nothing looked at it.
+So an L4 balancer is oblivious rather than destructive. The request is fully present the whole time. Nothing looks at it.
 
 **This is why an L4 load balancer is not a reverse proxy.** A reverse proxy terminates an HTTP conversation and starts a new one. An L4 balancer terminates a TCP connection and starts a new one, and never learns that HTTP was involved. Only one of them can route on a path, rewrite a header, terminate TLS or cache a response.
 
@@ -233,7 +233,7 @@ The client IP problem follows an L4 balancer too and the header trick is unavail
 
 If a load balancer is a reverse proxy that chooses, an API gateway is a reverse proxy that **decides whether to forward at all**.
 
-Everything below sits on top of the same `proxy_pass`. Nothing new was installed.
+Everything below sits on top of the same `proxy_pass`. Nothing new is installed.
 
 **Routing to different services by path.** One hostname, several services.
 
@@ -242,13 +242,13 @@ location /v1/agents/ { proxy_pass http://127.0.0.1:3001/; }
 location /v1/calls/  { proxy_pass http://127.0.0.1:3002/; }
 ```
 
-Requesting `/v1/agents/list` reached the backend as `/list` because both the `location` and the `proxy_pass` end in a slash and the prefix gets stripped. Drop that slash and the backend receives the full path instead. Which one your application expects is a real decision and getting it wrong gives you 404s that look like application bugs rather than routing bugs.
+Requesting `/v1/agents/list` reaches the backend as `/list` because both the `location` and the `proxy_pass` end in a slash and the prefix gets stripped. Drop that slash and the backend receives the full path instead. Which one your application expects is a real decision and getting it wrong gives you 404s that look like application bugs rather than routing bugs.
 
 Worth being clear about what these blocks are. They are not your API routes. The gateway matches coarse prefixes and your application resolves the specific endpoint, so a new endpoint ships without touching gateway config.
 
 > A gateway knows about services, not endpoints.
 
-**Rate limiting.** Twelve rapid requests gave me `200 200 200 200 200 200` then six `429`s.
+**Rate limiting.** Twelve rapid requests give me `200 200 200 200 200 200` then six `429`s.
 
 ```nginx
 limit_req_zone $binary_remote_addr zone=perip:10m rate=2r/s;
@@ -276,7 +276,7 @@ location /private/ {
 
 `/_authcheck` is another location in the same config, proxying to a small auth service that returns 200 when the request carries a valid API key header and 401 when it does not. A 2xx from it means nginx proceeds to the real backend and anything else is returned to the client directly.
 
-I sent a request without the key and got a 401, and the backend logged nothing because it was never contacted. The service holding the data does not participate in requests that fail authorisation.
+I send a request without the key and get a 401, and the backend logs nothing because it is never contacted. The service holding the data does not participate in requests that fail authorisation.
 
 **Caching.** Three lines cache successful responses for thirty seconds with a response header exposing what the cache did:
 
@@ -288,7 +288,7 @@ location /cached/ {
 }
 ```
 
-Two identical requests returned `X-Cache-Status: MISS` then `HIT`, and the backend log showed one request rather than two. The second response was produced entirely by the gateway.
+Two identical requests return `X-Cache-Status: MISS` then `HIT`, and the backend log shows one request rather than two. The second response is produced entirely by the gateway.
 
 That is a meaningful shift. A reverse proxy relays. A gateway that caches **answers**, which means your backend's traffic and your gateway's traffic are no longer the same number.
 
