@@ -109,7 +109,7 @@ const otpSendLimiter = rateLimit({
 });
 ```
 
-Behind a proxy, with `trust proxy` unset, that reads as five requests per fifteen minutes **for the entire service** rather than per user because every request appears to come from the same address. Real users start receiving 429s caused by strangers.
+Since every user shows up as the same IP, they all share one rate limit bucket. The limit you wrote as five requests per fifteen minutes per user is actually five requests per fifteen minutes **for the entire service**. Real users start receiving 429s caused by strangers.
 
 The fix is one line and the value needs care:
 
