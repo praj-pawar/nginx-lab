@@ -99,7 +99,7 @@ That matters because an IP address is a property of a TCP connection rather than
 
 ### Where this bites in real code
 
-This is the point where the abstraction stops being academic because it quietly breaks a security control that looks correct in review.
+This is where it stops being theory. The proxy hiding the client quietly breaks a security control that looks correct in code review.
 
 Express has a setting called `trust proxy`. Left at its default of `false`, `req.ip` returns the socket peer, which behind a load balancer is a private address that is identical for every user on the internet. Now consider a rate limiter on an OTP endpoint keyed on `req.ip`, which is the obvious thing to write and what most examples show:
 
