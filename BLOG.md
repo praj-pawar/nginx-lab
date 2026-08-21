@@ -99,8 +99,6 @@ That matters because an IP address is a property of a TCP connection rather than
 
 ### Where this bites in real code
 
-The proxy hiding the client quietly breaks a security control that looks correct in code review.
-
 Express has a setting called `trust proxy` and it is `false` by default. While off, `req.ip` comes from the socket, and you already know what the socket reports: the proxy. So when your app runs behind a load balancer, every user on the internet appears to have the same IP address, the load balancer's. Now look at a rate limiter on an OTP endpoint keyed on `req.ip`, which is the obvious thing to write and what most examples show:
 
 ```js
