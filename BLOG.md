@@ -374,7 +374,7 @@ Being able to say "these are 503s so that is our own limiter rather than the ser
 
 ### Three things worth keeping
 
-**A reverse proxy terminates your connection and makes a new one.** Almost every surprise in this post follows from that one fact. The client's address, the original hostname and the protocol all belong to a connection the backend never touches.
+**A reverse proxy terminates your connection and makes a new one.** The client's address, the original hostname and the protocol all belong to a connection the backend never touches.
 
 **nginx preserves nothing by default.** The block of `proxy_set_header` lines in every production config is a repair kit rather than boilerplate and knowing what each line restores is the difference between copying it and understanding it.
 
