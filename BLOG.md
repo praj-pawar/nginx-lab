@@ -161,9 +161,9 @@ Round robin sends an equal number of requests to each backend and a request is a
 | `hash $key consistent` | consistent hashing on a key you choose | stickiness plus a pool that changes size |
 | `random two least_conn` | pick two at random, use the less busy | large pools, cheap and effective |
 
-The distinction between the two sticky options is the one worth knowing. `ip_hash` maps a key to a server by taking a hash modulo the number of servers so adding a fourth server to a pool of three changes the modulus and sends most keys somewhere new. Consistent hashing places servers around a ring so adding one moves roughly a quarter of the keys and leaves the rest alone.
+The distinction between the two sticky options is the one worth knowing. `ip_hash` maps a key directly onto the current list of servers so adding a fourth server to a pool of three sends most keys somewhere new. Consistent hashing places servers around a ring so adding one moves roughly a quarter of the keys and leaves the rest alone.
 
-That difference only shows up when the pool changes size which is precisely when you can least afford it. If the stickiness was backing a local cache, a plain modulo hash means one scaling event invalidates nearly everything at once, every backend stampedes the database together and the scale-up that was meant to help you causes the outage instead.
+That difference only shows up when the pool changes size which is precisely when you can least afford it. If the stickiness was backing a local cache, plain hashing means one scaling event invalidates nearly everything at once, every backend stampedes the database together and the scale-up that was meant to help you causes the outage instead.
 
 `ip_hash` has two further weaknesses. Clients behind a shared NAT, a corporate proxy or a mobile carrier all arrive as one address so distribution gets lumpy. And a phone switching from wifi to cellular changes IP and silently loses its stickiness mid session.
 
@@ -276,7 +276,7 @@ location /private/ {
 }
 ```
 
-`/_authcheck` proxies to a small auth service. A 2xx means nginx proceeds to the backend and anything else goes straight back to the client. I send a request without the key, get a 401 and the backend never even sees the request.
+`/_authcheck` proxies to a small auth service. A 2xx means nginx proceeds to the backend, a 401 or 403 goes back to the client and any other code turns into a 500. I send a request without the key, get a 401 and the backend never even sees the request.
 
 And finally **caching**, where three lines keep successful responses for thirty seconds with a response header exposing what the cache did:
 
