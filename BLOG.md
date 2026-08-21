@@ -276,9 +276,7 @@ location /private/ {
 }
 ```
 
-`/_authcheck` is another location in the same config, proxying to a small auth service that returns 200 when the request carries a valid API key header and 401 when it does not. A 2xx from it means nginx proceeds to the real backend and anything else is returned to the client directly.
-
-I send a request without the key and get a 401 and the backend logs nothing because it is never contacted. The service holding the data does not participate in requests that fail authorisation.
+`/_authcheck` proxies to a small auth service. A 2xx means nginx proceeds to the backend and anything else goes straight back to the client. I send a request without the key, get a 401 and the backend never even sees the request.
 
 And finally **caching**, where three lines keep successful responses for thirty seconds with a response header exposing what the cache did:
 
