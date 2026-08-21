@@ -8,7 +8,7 @@ There is actually one thing and there are three problems people were trying to s
 
 So in this post I want to build all three up from first principles and show you how they are actually used in production. The way I get comfortable with a system is by taking it apart until it stops surprising me so I spent a few nights doing exactly that with nginx on my laptop, fronting three tiny backends that report exactly what they receive. What follows is what the machine does rather than what the docs say.
 
-And at the end of the post, I get into how these pieces are actually wired together in the production systems I have worked with: the chains real traffic flows through, the patterns that never make it into the docs and the lessons that are usually learned the hard way, during an outage.
+And at the end of the post, I get into how these pieces are actually wired together in the production systems I have worked with: the chains real traffic flows through, the patterns that never make it into the docs and the lessons that are usually learned the hard way during an outage.
 
 Every config is in [this repo](https://github.com/praj-pawar/nginx-lab). I would recommend running the labs yourself and getting your hands dirty because that is the part that makes any of this stick.
 
@@ -227,7 +227,7 @@ The second is **TLS you would rather not decrypt** because reading HTTP means ho
 
 The third is **real time streams**, where an L7 proxy's parsing and buffering degrades live audio so being understood is a liability rather than a feature.
 
-The client IP problem follows an L4 balancer too and the header trick is unavailable since there are no headers. The fix lives one layer down, in the PROXY protocol which sends a short preamble ahead of the application data carrying the original addresses. Both ends must agree, with no negotiation, so enabling it is a coordinated change.
+The client IP problem follows an L4 balancer too and the header trick is unavailable since there are no headers. The fix lives one layer down in the PROXY protocol which sends a short preamble ahead of the application data carrying the original addresses. Both ends must agree, with no negotiation, so enabling it is a coordinated change.
 
 ## Making it a gateway
 
@@ -259,9 +259,9 @@ location /v1/auth/ {
 }
 ```
 
-Picture a bucket that drains at the configured rate, which here is two requests per second. `burst=5` is the size of the bucket, meaning five requests may wait inside it. When my twelve requests arrive together, the first one goes straight through because the rate permits it, the next five fill the bucket and the remaining six get a 429. That is where the six successes come from.
+Picture a bucket that drains at the configured rate which here is two requests per second. `burst=5` is the size of the bucket, meaning five requests may wait inside it. When my twelve requests arrive together, the first one goes straight through because the rate permits it, the next five fill the bucket and the remaining six get a 429. That is where the six successes come from.
 
-The `nodelay` flag is the part people copy without reading, and it decides what happens to the five requests sitting in the bucket. Without it nginx releases them slowly at the drain rate, so they succeed spread over a couple of seconds. With it nginx answers them immediately. The same six succeed either way, so the flag is really choosing between fast responses for your clients and a smooth, steady stream of requests for your backend.
+The `nodelay` flag is the part people copy without reading and it decides what happens to the five requests sitting in the bucket. Without it nginx releases them slowly at the drain rate so they succeed spread over a couple of seconds. With it nginx answers them immediately. The same six succeed either way so the flag is really choosing between fast responses for your clients and a smooth, steady stream of requests for your backend.
 
 Set `limit_req_status` explicitly because nginx defaults to **503** which tells the client your service is broken when the truth is that they sent too much.
 
@@ -332,7 +332,7 @@ Every hop makes its own decisions about headers, health checks, timeouts and ret
 | `limit_req` | a WAF rate rule, or an API gateway usage plan |
 | `auth_request` subrequest | a built in OIDC integration, or an authorizer function |
 
-The health check row is the biggest practical upgrade. Open source nginx finds a dead backend by failing somebody's request, while managed balancers probe independently and know before a user does. If you have only ever used a managed balancer, that behaviour is a feature you are being given rather than something inherent to load balancing.
+The health check row is the biggest practical upgrade. Open source nginx finds a dead backend by failing somebody's request while managed balancers probe independently and know before a user does. If you have only ever used a managed balancer, that behaviour is a feature you are being given rather than something inherent to load balancing.
 
 Two patterns worth stealing both of which follow directly from the sections above.
 
