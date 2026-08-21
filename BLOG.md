@@ -20,7 +20,7 @@ A **load balancer** IS a reverse proxy whose defining job is choosing which of s
 
 An **API gateway** IS a reverse proxy whose defining job is enforcing policy; things like authentication, rate limits, quotas and request shaping.
 
-Reverse proxying is the capability. The other two are descriptions of what you are mostly using that capability for.
+> Reverse proxying is the capability. The other two are descriptions of what you are mostly using that capability for.
 
 ```
                     ┌─────────────────────────────┐
