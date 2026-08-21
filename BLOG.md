@@ -217,7 +217,7 @@ So an L4 balancer is oblivious rather than destructive. The request is fully pre
 
 **This is why an L4 load balancer is not a reverse proxy.** A reverse proxy terminates an HTTP conversation and starts a new one. An L4 balancer terminates a TCP connection and starts a new one and never learns that HTTP was involved. Only one of them can route on a path, rewrite a header, terminate TLS or cache a response.
 
-Which is the vocabulary problem in full. When somebody says "load balancer", they might mean a thing that reads your requests and decides things about them or a thing that moves bytes between sockets. The word covers both, the capabilities barely overlap and that ambiguity is most of the confusion this post set out to clear up.
+And that is the vocabulary problem: when somebody says "load balancer", they might mean a thing that reads your requests and makes decisions about them or a thing that simply moves bytes between sockets. One word covers two barely overlapping capabilities and that ambiguity is most of the confusion this post set out to clear up.
 
 So why choose the less capable option? Three reasons come up in practice.
 
