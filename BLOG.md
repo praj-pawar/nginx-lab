@@ -6,7 +6,7 @@ Most of the writing on the internet is generic - a load balancer distributes tra
 
 There is actually one thing and there are three problems people were trying to solve when they named it.
 
-So in this post I want to build all three up from first principles and show you how they are actually used in production. The way I get comfortable with a system is by taking it apart until it stops surprising me, so I spent a few nights doing exactly that with nginx on my laptop, fronting three tiny backends that report exactly what they receive. What follows is what the machine did rather than what the documentation says it does. A few of my assumptions did not survive and I have kept those in.
+So in this post I want to build all three up from first principles and show you how they are actually used in production. The way I get comfortable with a system is by taking it apart until it stops surprising me, so I spent a few nights doing exactly that with nginx on my laptop, fronting three tiny backends that report exactly what they receive. What follows is what the machine did rather than what the docs say.
 
 And at the end of the post, I have added insights from the production systems I have worked with: how these pieces are actually deployed and a status code cheat sheet that will save you a late night debugging session someday.
 
