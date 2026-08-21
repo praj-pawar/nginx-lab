@@ -70,7 +70,7 @@ Three things in that table are worth sitting with.
 
 **The client IP changed, and so did its address family.** The direct request arrived over IPv6 because that is what my resolver preferred. The proxied one arrived over IPv4 because the config named `127.0.0.1` explicitly. Two different protocol families is a clear demonstration that these are two different connections.
 
-**The `Host` header was overwritten.** The client asked for `localhost:8080`. The backend was told `127.0.0.1:3001`. nginx rewrites `Host` to describe the upstream it is dialing, so the hostname the user typed is gone by the time your application sees the request. Anything that builds a URL from `Host` now builds the wrong one, which is how password reset emails end up containing links to `127.0.0.1`.
+**The `Host` header was overwritten.** The client asked for `localhost:8080`. The backend was told `127.0.0.1:3001`. nginx rewrites `Host` to describe the upstream it is dialing, so the hostname the user typed is gone by the time your application sees the request. Anything that builds a URL from `Host` now builds the wrong one.
 
 **nginx added no forwarding headers at all.** This surprised me more than it should have. A reverse proxy is the thing that hides the client, so you might expect it to compensate automatically. It does not. `X-Forwarded-For`, `X-Real-IP` and `X-Forwarded-Proto` are all opt-in.
 
