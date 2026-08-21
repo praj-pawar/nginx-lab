@@ -12,7 +12,7 @@ So in this post I want to build all three up from first principles and show you 
 
 And at the end of the post, I have added insights from the production systems I have worked with: how these pieces are actually deployed and a status code cheat sheet that will save you a late night debugging session someday.
 
-Every config is in a repo. I would recommend running the labs yourself and getting your hands dirty because that is the part that makes any of this stick.
+Every config is in [this repo](https://github.com/praj-pawar/nginx-lab). I would recommend running the labs yourself and getting your hands dirty because that is the part that makes any of this stick.
 
 ## First, let's get the basics cleared
 
@@ -370,4 +370,4 @@ A 502 or 504 sends you to the service. A 429 or 503 sends you to the gateway. Be
 
 **The layer is a choice about how deep to look.** L4 is oblivious rather than limited and oblivious is occasionally exactly what you want. The most counterintuitive lesson here is that the less capable option is sometimes the correct one because understanding your traffic is also the ability to interfere with it.
 
-Every configuration in this post is in the repo along with the tiny backends that report what they actually received. I recommend you run it yourself. Reading that nginx rewrites your `Host` header is not the same as watching it happen to a request you sent yourself.
+Every configuration in this post is in [the repo](https://github.com/praj-pawar/nginx-lab) along with the tiny backends that report what they actually received. I recommend you run it yourself. Reading that nginx rewrites your `Host` header is not the same as watching it happen to a request you sent yourself.
