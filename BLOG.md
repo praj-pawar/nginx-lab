@@ -2,7 +2,7 @@
 
 They say if you throw a stone in Bangalore you will probably hit a backend engineer. But how many of them can actually explain the difference between a load balancer, a reverse proxy and an API gateway in a real production system?
 
-Most of the writing on the internet is generic. A load balancer distributes traffic. A reverse proxy sits in front of your servers. An API gateway handles auth and rate limiting. All three are true and all three are true of the same piece of software. Then the same cloud vendor sells you all three as separate products, so naturally we assume there are three things.
+Most of the writing on the internet is generic - a load balancer distributes traffic, a reverse proxy sits in front of your server and an API gateway handles auth and rate limiting. All three are true and all three are true of the same piece of software! Then the same cloud vendor sells you all three as separate products, so naturally we assume there are three things.
 
 There is actually one thing and there are three problems people were trying to solve when they named it.
 
